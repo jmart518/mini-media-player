@@ -585,13 +585,13 @@ class MiniMediaPlayer extends LitElement {
   _handleSonosEdit(e) {
     e.stopPropagation();
     this.edit = !this.edit;
-    if (!this.entity.sonos_group)
+    if (!this.entity.attributes.sonos_group)
       return;
 
     this.sonosGroup = this.config.sonos_grouping.map(ele => {
       return {
-        checked: this.entity.sonos_group.includes(ele.entity_id)
-          && this.entity.sonos_group[0] === this.config.entity,
+        checked: this.entity.attributes.sonos_group.includes(ele.entity_id)
+          && this.entity.attributes.sonos_group[0] === this.config.entity,
         disabled: ele.entity_id === this.config.entity,
         ...ele
       };
