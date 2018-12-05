@@ -11,6 +11,7 @@ const MEDIA_INFO = [
 
 const ICON = {
   dropdown: 'mdi:chevron-down',
+  group: 'mdi:google-circles-communities',
   menu: 'mdi:menu-down',
   mute: {
     true: 'mdi:volume-off',
@@ -40,6 +41,7 @@ class MiniMediaPlayer extends LitElement {
     };
     this.break = true;
     this.initial = true;
+    this.edit = false;
   }
 
   static get properties() {
@@ -57,7 +59,8 @@ class MiniMediaPlayer extends LitElement {
         w: Number
       },
       break: Boolean,
-      initial: Boolean
+      initial: Boolean,
+      edit: Boolean
     };
   }
 
@@ -109,6 +112,7 @@ class MiniMediaPlayer extends LitElement {
       show_shuffle: false,
       show_source: false,
       show_tts: false,
+      sonos_grouping: false,
       title: '',
       toggle_power: true,
       volume_stateless: false,
@@ -134,7 +138,8 @@ class MiniMediaPlayer extends LitElement {
       || (changedProps.has('_rect')
           && this.entity.attributes.entity_picture
           && this.config.artwork.substring(0,10) === 'full-cover')
-      || changedProps.has('break'));
+      || changedProps.has('break')
+      || changedProps.has('edit'));
 
     if (update) {
       this.active = this._isActive();
@@ -206,6 +211,7 @@ class MiniMediaPlayer extends LitElement {
             ${config.media_buttons ? this._renderButtons() : ''}
             ${config.media_list ? this._renderList() : ''}
             ${config.show_tts ? this._renderTts() : ''}
+            ${this.edit ? this._renderSonosGroup() : ''}
           </div>
         </div>
         ${config.show_progress && this._showProgress ? this._renderProgress() : ''}
@@ -348,9 +354,38 @@ class MiniMediaPlayer extends LitElement {
         <div class='flex right'>
           ${this.idle ? this._renderIdleStatus() : html``}
           ${config.show_source ? this._renderSource() : html``}
+          ${config.sonos_grouping ? this._renderSonosGroupButton() : html``}
           ${!config.hide_power ? this._renderPowerButton() : html``}
         <div>
       </div>`;
+  }
+
+  _renderSonosGroupButton() {
+    return html`
+      <paper-icon-button .icon=${ICON.group}
+        ?color=${this.edit}
+        @click='${e => this._handleSonosEdit(e)}'>
+      </paper-icon-button>`;
+  }
+
+  _renderSonosGroup() {
+    const entities = this.sonosGroup || [];
+    return html`
+      <div class='speaker-select'>
+      <span>Group speakers:</span>
+        ${entities.map((item, i) => this._renderSonosGroupRow(item, i))}
+      </div>
+    `;
+  }
+  _renderSonosGroupRow(item, i) {
+    return html`
+      <paper-checkbox
+        ?checked=${item.checked || item.disabled}
+        ?disabled=${item.disabled}
+        value=${item.entity_id}
+        @click='${e => this._handleSonosItemEdit(e, item, i)}'>
+        ${item.name}
+      </paper-checkbox>`;
   }
 
   _renderSource({entity} = this) {
@@ -543,8 +578,37 @@ class MiniMediaPlayer extends LitElement {
   _handleSource(e) {
     const source = e.target.getAttribute('value');
     const options = { 'source': source };
-    this._callService(e, 'select_source' , options);
+    this._callService(e, 'select_source', options);
     this.source = source;
+  }
+
+  _handleSonosEdit(e) {
+    e.stopPropagation();
+    this.edit = !this.edit;
+    if (!this.entity.sonos_group)
+      return;
+
+    this.sonosGroup = this.config.sonos_grouping.map(ele => {
+      return {
+        checked: this.entity.sonos_group.includes(ele.entity_id)
+          && this.entity.sonos_group[0] === this.config.entity,
+        disabled: ele.entity_id === this.config.entity,
+        ...ele
+      };
+    });
+  }
+
+  _handleSonosItemEdit(e, item, i) {
+    e.stopPropagation();
+    const checked = !item.checked;
+    this.sonosGroup[i].checked = checked;
+    let options = { entity_id: item.entity_id };
+    if (checked) {
+      options.master = this.config.entity;
+      this._callService(e, 'SONOS_JOIN', options, 'sonos');
+    } else {
+      this._callService(e, 'SONOS_UNJOIN', options, 'sonos');
+    }
   }
 
   _fire(type, detail, options) {
@@ -1007,6 +1071,17 @@ class MiniMediaPlayer extends LitElement {
           flex: 1;
           min-width: 140px;
           max-height: 40px;
+        }
+        .speaker-select {
+          display: flex;
+          flex-direction: column;
+        }
+        .speaker-select > span {
+          font-weight: 500;
+          margin-top: 4px;
+        }
+        .speaker-select paper-checkbox {
+          padding: 8px 0;
         }
         paper-slider {
           max-width: 400px;
