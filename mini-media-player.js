@@ -605,9 +605,9 @@ class MiniMediaPlayer extends LitElement {
     let options = { entity_id: item.entity_id };
     if (checked) {
       options.master = this.config.entity;
-      this._callService(e, 'SONOS_JOIN', options, 'sonos');
+      this._callService(e, 'SONOS_JOIN', options);
     } else {
-      this._callService(e, 'SONOS_UNJOIN', options, 'sonos');
+      this._callService(e, 'SONOS_UNJOIN', options);
     }
   }
 
