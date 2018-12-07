@@ -372,7 +372,7 @@ class MiniMediaPlayer extends LitElement {
     const entities = this.sonosGroup || [];
     return html`
       <div class='speaker-select'>
-      <span>Group speakers:</span>
+      <span>Group speakers</span>
         ${entities.map((item, i) => this._renderSonosGroupRow(item, i))}
       </div>
     `;
@@ -1078,7 +1078,8 @@ class MiniMediaPlayer extends LitElement {
         }
         .speaker-select > span {
           font-weight: 500;
-          margin-top: 4px;
+          margin-top: 12px;
+          text-transform: uppercase;
         }
         .speaker-select paper-checkbox {
           padding: 8px 0;
@@ -1195,7 +1196,10 @@ class MiniMediaPlayer extends LitElement {
         ha-card[break] .tts,
         ha-card[hide-info] .media-dropdown,
         ha-card[hide-icon] .media-dropdown,
-        ha-card[break] .media-dropdown {
+        ha-card[break] .media-dropdown,
+        ha-card[hide-info] .speaker-select,
+        ha-card[hide-icon] .speaker-select,
+        ha-card[break] .speaker-select {
           padding-left: 8px;
           padding-right: 8px;
         }
