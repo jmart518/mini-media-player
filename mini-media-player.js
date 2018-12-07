@@ -363,6 +363,7 @@ class MiniMediaPlayer extends LitElement {
   _renderSonosGroupButton() {
     return html`
       <paper-icon-button .icon=${ICON.group}
+        ?opaque=${!this.entity.attributes.sonos_group || this.entity.attributes.sonos_group.length <= 1}
         ?color=${this.edit}
         @click='${e => this._handleSonosEdit(e)}'>
       </paper-icon-button>`;
@@ -585,12 +586,11 @@ class MiniMediaPlayer extends LitElement {
   _handleSonosEdit(e) {
     e.stopPropagation();
     this.edit = !this.edit;
-    if (!this.entity.attributes.sonos_group)
-      return;
 
     this.sonosGroup = this.config.sonos_grouping.map(ele => {
       return {
-        checked: this.entity.attributes.sonos_group.includes(ele.entity_id)
+        checked: this.entity.attributes.sonos_group
+          && this.entity.attributes.sonos_group.includes(ele.entity_id)
           && this.entity.attributes.sonos_group[0] === this.config.entity,
         disabled: ele.entity_id === this.config.entity,
         ...ele
@@ -599,7 +599,6 @@ class MiniMediaPlayer extends LitElement {
   }
 
   _handleSonosItemEdit(e, item, i) {
-    e.stopPropagation();
     const checked = !item.checked;
     this.sonosGroup[i].checked = checked;
     let options = { entity_id: item.entity_id };
@@ -946,6 +945,12 @@ class MiniMediaPlayer extends LitElement {
         ha-card[artwork*='cover'][has-artwork] .entity__info__media,
         paper-icon-button[color] {
           color: var(--accent-color) !important;
+        }
+        paper-icon-button[opaque] {
+          opacity: .5;
+        }
+        paper-icon-button[color][opaque] {
+          opacity: 1;
         }
         paper-icon-button {
           transition: color .25s ease-in-out;
