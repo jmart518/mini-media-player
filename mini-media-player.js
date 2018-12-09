@@ -381,6 +381,12 @@ class MiniMediaPlayer extends LitElement {
       <div class='speaker-select'>
         <span>Group speakers</span>
         ${entities.map(item => this._renderGroupListItem(item, group, master))}
+        <paper-button
+          raised
+          ?disabled=${group.length < 2}
+          @click='${e => this._handleGroupItemChange(e, this.config.entity, false)}'>
+          Unjoin current group
+        </paper-button>
       </div>`;
   }
   _renderGroupListItem(item, group, master) {
@@ -1086,6 +1092,12 @@ class MiniMediaPlayer extends LitElement {
         }
         .speaker-select paper-checkbox {
           padding: 8px 0;
+        }
+        .speaker-select > paper-button {
+          background-color: rgba(255,255,255,0.1);
+          margin: 8px 0 0 0;
+          text-transform: uppercase;
+          text-align: center;
         }
         .speaker-select > paper-checkbox > span {
           font-weight: 600;
