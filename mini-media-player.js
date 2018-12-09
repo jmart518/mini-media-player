@@ -211,7 +211,7 @@ class MiniMediaPlayer extends LitElement {
             ${config.media_buttons ? this._renderButtons() : ''}
             ${config.media_list ? this._renderList() : ''}
             ${config.show_tts ? this._renderTts() : ''}
-            ${this.edit ? this._renderSonosGroup() : ''}
+            ${this.edit ? this._renderGroupList() : ''}
           </div>
         </div>
         ${config.show_progress && this._showProgress ? this._renderProgress() : ''}
@@ -354,37 +354,37 @@ class MiniMediaPlayer extends LitElement {
         <div class='flex right'>
           ${this.idle ? this._renderIdleStatus() : html``}
           ${config.show_source ? this._renderSource() : html``}
-          ${config.sonos_grouping ? this._renderSonosGroupButton() : html``}
+          ${config.sonos_grouping ? this._renderGroupButton() : html``}
           ${!config.hide_power ? this._renderPowerButton() : html``}
         <div>
       </div>`;
   }
 
-  _renderSonosGroupButton() {
+  _renderGroupButton() {
     return html`
       <paper-icon-button .icon=${ICON.group}
         ?opaque=${!this.entity.attributes.sonos_group || this.entity.attributes.sonos_group.length <= 1}
         ?color=${this.edit}
-        @click='${e => this._handleSonosEdit(e)}'>
+        @click='${e => this._handleGroup(e)}'>
       </paper-icon-button>`;
   }
 
-  _renderSonosGroup() {
+  _renderGroupList() {
     const entities = this.sonosGroup || [];
     return html`
       <div class='speaker-select'>
       <span>Group speakers</span>
-        ${entities.map((item, i) => this._renderSonosGroupRow(item, i))}
+        ${entities.map((item, i) => this._renderGroupListItem(item, i))}
       </div>
     `;
   }
-  _renderSonosGroupRow(item, i) {
+  _renderGroupListItem(item, i) {
     return html`
       <paper-checkbox
         ?checked=${item.checked || item.disabled}
         ?disabled=${item.disabled}
         value=${item.entity_id}
-        @click='${e => this._handleSonosItemEdit(e, item, i)}'>
+        @click='${e => this._handleGroupItemChange(e, item, i)}'>
         ${item.name}
       </paper-checkbox>`;
   }
@@ -583,7 +583,7 @@ class MiniMediaPlayer extends LitElement {
     this.source = source;
   }
 
-  _handleSonosEdit(e) {
+  _handleGroup(e) {
     e.stopPropagation();
     this.edit = !this.edit;
 
@@ -598,7 +598,7 @@ class MiniMediaPlayer extends LitElement {
     });
   }
 
-  _handleSonosItemEdit(e, item, i) {
+  _handleGroupItemChange(e, item, i) {
     const checked = !item.checked;
     this.sonosGroup[i].checked = checked;
     let options = { entity_id: item.entity_id };
