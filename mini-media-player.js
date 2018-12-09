@@ -361,31 +361,41 @@ class MiniMediaPlayer extends LitElement {
   }
 
   _renderGroupButton() {
+    const grouped = !this.entity.attributes.sonos_group
+      || this.entity.attributes.sonos_group.length <= 1
+
     return html`
       <paper-icon-button .icon=${ICON.group}
-        ?opaque=${!this.entity.attributes.sonos_group || this.entity.attributes.sonos_group.length <= 1}
+        ?opaque=${grouped}
         ?color=${this.edit}
-        @click='${e => this._handleGroup(e)}'>
+        @click='${e => this._handleGroupButton(e)}'>
       </paper-icon-button>`;
   }
 
   _renderGroupList() {
-    const entities = this.sonosGroup || [];
+    const entities = this.config.sonos_grouping;
+    const group = this.entity.attributes.sonos_group || [];
+    const master = group[0] || this.config.entity;
+
     return html`
       <div class='speaker-select'>
-      <span>Group speakers</span>
-        ${entities.map((item, i) => this._renderGroupListItem(item, i))}
-      </div>
-    `;
+        <span>Group speakers</span>
+        ${entities.map(item => this._renderGroupListItem(item, group, master))}
+      </div>`;
   }
-  _renderGroupListItem(item, i) {
+  _renderGroupListItem(item, group, master) {
+    const checked = item.entity_id === this.config.entity
+      || group.includes(item.entity_id);
+    const disabled = item.entity_id === this.config.entity
+      || master !== this.config.entity;
+
     return html`
       <paper-checkbox
-        ?checked=${item.checked || item.disabled}
-        ?disabled=${item.disabled}
-        value=${item.entity_id}
-        @click='${e => this._handleGroupItemChange(e, item, i)}'>
+        ?checked=${checked}
+        ?disabled=${disabled}
+        @click='${e => this._handleGroupItemChange(e, item.entity_id, !checked)}'>
         ${item.name}
+        ${item.entity_id === master ? html`<span>(master)</span>` : ''}
       </paper-checkbox>`;
   }
 
@@ -583,25 +593,13 @@ class MiniMediaPlayer extends LitElement {
     this.source = source;
   }
 
-  _handleGroup(e) {
+  _handleGroupButton(e) {
     e.stopPropagation();
     this.edit = !this.edit;
-
-    this.sonosGroup = this.config.sonos_grouping.map(ele => {
-      return {
-        checked: this.entity.attributes.sonos_group
-          && this.entity.attributes.sonos_group.includes(ele.entity_id)
-          && this.entity.attributes.sonos_group[0] === this.config.entity,
-        disabled: ele.entity_id === this.config.entity,
-        ...ele
-      };
-    });
   }
 
-  _handleGroupItemChange(e, item, i) {
-    const checked = !item.checked;
-    this.sonosGroup[i].checked = checked;
-    let options = { entity_id: item.entity_id };
+  _handleGroupItemChange(e, entity, checked) {
+    let options = { entity_id: entity };
     if (checked) {
       options.master = this.config.entity;
       this._callService(e, 'SONOS_JOIN', options);
@@ -1088,6 +1086,9 @@ class MiniMediaPlayer extends LitElement {
         }
         .speaker-select paper-checkbox {
           padding: 8px 0;
+        }
+        .speaker-select > paper-checkbox > span {
+          font-weight: 600;
         }
         paper-slider {
           max-width: 400px;
