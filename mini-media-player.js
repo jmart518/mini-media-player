@@ -381,14 +381,24 @@ class MiniMediaPlayer extends LitElement {
       <div class='speaker-select'>
         <span>Group speakers</span>
         ${entities.map(item => this._renderGroupListItem(item, group, master))}
-        <paper-button
-          raised
-          ?disabled=${group.length < 2}
-          @click='${e => this._handleGroupItemChange(e, this.config.entity, false)}'>
-          Unjoin current group
-        </paper-button>
+        <div class='buttons'>
+          <paper-button
+            raised
+            ?disabled=${group.length < 2}
+            @click='${e => this._handleGroupItemChange(e, this.config.entity, false)}'>
+            Ungroup
+          </paper-button>
+          <paper-button
+            raised
+            ?disabled=${master !== this.config.entity}
+            @click='${e =>
+              this._handleGroupItemChange(e, entities.map(item => item.entity_id), true)}'>
+            Group all
+          </paper-button>
+        </div>
       </div>`;
   }
+
   _renderGroupListItem(item, group, master) {
     const checked = item.entity_id === this.config.entity
       || group.includes(item.entity_id);
@@ -807,6 +817,7 @@ class MiniMediaPlayer extends LitElement {
         ha-card[artwork*='cover'][has-artwork] paper-button,
         ha-card[artwork*='cover'][has-artwork] header,
         ha-card[artwork*='cover'][has-artwork] .select span,
+        ha-card[artwork*='cover'][has-artwork] .speaker-select > span,
         ha-card[artwork*='cover'][has-artwork] paper-menu-button paper-button[focused] iron-icon {
           color: #FFFFFF;
           border-color: #FFFFFF;
@@ -814,7 +825,15 @@ class MiniMediaPlayer extends LitElement {
         ha-card[artwork*='cover'][has-artwork] paper-input {
           --paper-input-container-focus-color: #FFFFFF;
         }
-        ha-card[artwork*='cover'][has-artwork] .media-buttons paper-button {
+        ha-card[artwork*='cover'][has-artwork] paper-checkbox[disabled] {
+          --paper-checkbox-checkmark-color: rgba(0,0,0,.5);
+        }
+        ha-card[artwork*='cover'][has-artwork] paper-checkbox {
+          --paper-checkbox-unchecked-color: #FFFFFF;
+          --paper-checkbox-label-color: #FFFFFF;
+        }
+        ha-card[artwork*='cover'][has-artwork] .media-buttons paper-button,
+        ha-card[artwork*='cover'][has-artwork] .speaker-select paper-button {
           background: rgba(255,255,255,.65);
           color: black;
         }
@@ -1035,8 +1054,6 @@ class MiniMediaPlayer extends LitElement {
           padding-top: 8px;
         }
         .media-buttons > paper-button {
-          background-color: var(--primary-background-color);
-          background-color: var(--paper-slider-active-color);
           background-color: rgba(255,255,255,0.1);
           border-radius: 0;
           box-sizing: border-box;
@@ -1093,11 +1110,24 @@ class MiniMediaPlayer extends LitElement {
         .speaker-select paper-checkbox {
           padding: 8px 0;
         }
-        .speaker-select > paper-button {
+        .speaker-select .buttons {
+          display: flex;
+          flex-dirction: row;
+        }
+        .speaker-select paper-button {
           background-color: rgba(255,255,255,0.1);
-          margin: 8px 0 0 0;
+          margin: 8px 8px 0 0;
+          min-width: 0;
+          padding: .5em 1em;
           text-transform: uppercase;
           text-align: center;
+          width: 50%;
+        }
+        .speaker-select paper-button[disabled] {
+          opacity: .5;
+        }
+        .speaker-select paper-button:nth-child(even) {
+          margin: 8px 0 0 8px;
         }
         .speaker-select > paper-checkbox > span {
           font-weight: 600;
