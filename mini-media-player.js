@@ -376,6 +376,7 @@ class MiniMediaPlayer extends LitElement {
     const entities = this.config.sonos_grouping;
     const group = this.entity.attributes.sonos_group || [];
     const master = group[0] || this.config.entity;
+    const isMaster = master === this.config.entity;
 
     return html`
       <div class='speaker-select'>
@@ -385,12 +386,13 @@ class MiniMediaPlayer extends LitElement {
           <paper-button
             raised
             ?disabled=${group.length < 2}
-            @click='${e => this._handleGroupItemChange(e, this.config.entity, false)}'>
-            Ungroup
+            @click='${e =>
+              this._handleGroupItemChange(e, isMaster ? group : this.config.entity, false)}'>
+            ${isMaster ? html`Ungroup` : html`Leave`}
           </paper-button>
           <paper-button
             raised
-            ?disabled=${master !== this.config.entity}
+            ?disabled=${!isMaster}
             @click='${e =>
               this._handleGroupItemChange(e, entities.map(item => item.entity_id), true)}'>
             Group all
